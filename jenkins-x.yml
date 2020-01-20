@@ -36,11 +36,6 @@ pipelineConfig:
               value: -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
             - name: XDG_CONFIG_HOME
               value: /home/jenkins
-            - name: _JAVA_OPTIONS
-              value: -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap
-                -Dsun.zip.disableMemoryMapping=true -XX:+UseParallelGC -XX:MinHeapFreeRatio=5
-                -XX:MaxHeapFreeRatio=10 -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90
-                -Xms10m -Xmx1024m
             name: ""
             resources:
               limits:
@@ -132,11 +127,6 @@ pipelineConfig:
               value: -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
             - name: XDG_CONFIG_HOME
               value: /home/jenkins
-            - name: _JAVA_OPTIONS
-              value: -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap
-                -Dsun.zip.disableMemoryMapping=true -XX:+UseParallelGC -XX:MinHeapFreeRatio=5
-                -XX:MaxHeapFreeRatio=10 -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90
-                -Xms10m -Xmx1024m
             name: ""
             resources:
               limits:
@@ -196,12 +186,6 @@ pipelineConfig:
           - command: jx step post build --image $DOCKER_REGISTRY/$ORG/$APP_NAME:${VERSION}
             dir: /workspace/source
             name: build-post-build
-          - command: echo where-am-i
-            dir: /workspace/source
-            name: postbuild-step7
-          - command: echo and-what-does-this-do
-            dir: /workspace/source
-            name: postbuild-step8
           - command: jx step changelog --version v${VERSION}
             dir: /workspace/source/charts/cloud-s4-sdk-book
             name: promote-changelog
