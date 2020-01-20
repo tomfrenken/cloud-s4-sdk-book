@@ -12,12 +12,6 @@ pipelineConfig:
     post: {}
     pullRequest:
       pipeline:
-        env:
-        - name: _JAVA_OPTIONS
-          value: -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap
-            -Dsun.zip.disableMemoryMapping=true -XX:+UseParallelGC -XX:MinHeapFreeRatio=5
-            -XX:MaxHeapFreeRatio=10 -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90
-            -Xms10m -Xmx1024m
         options:
           containerOptions:
             env:
@@ -90,15 +84,12 @@ pipelineConfig:
           steps:
           - command: mvn versions:set -DnewVersion=$PREVIEW_VERSION
             dir: /workspace/source
-            image: maven
             name: build-set-version
           - command: mvn install
             dir: /workspace/source
-            image: maven
             name: build-mvn-install
           - command: skaffold version
             dir: /workspace/source
-            image: maven
             name: build-skaffold-version
           - command: /kaniko/executor --cache=true --cache-dir=/workspace --context=/workspace/source
               --dockerfile=/workspace/source/Dockerfile --destination=gcr.io/sap-cpe-cloudpot-dev/cloud-s4-sdk-book:${inputs.params.version}
@@ -108,24 +99,15 @@ pipelineConfig:
             name: build-container-build
           - command: jx step post build --image $DOCKER_REGISTRY/$ORG/$APP_NAME:$PREVIEW_VERSION
             dir: /workspace/source
-            image: maven
             name: postbuild-post-build
           - command: make preview
             dir: /workspace/source/charts/preview
-            image: maven
             name: promote-make-preview
           - command: jx preview --app $APP_NAME --dir ../..
             dir: /workspace/source/charts/preview
-            image: maven
             name: promote-jx-preview
     release:
       pipeline:
-        env:
-        - name: _JAVA_OPTIONS
-          value: -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap
-            -Dsun.zip.disableMemoryMapping=true -XX:+UseParallelGC -XX:MinHeapFreeRatio=5
-            -XX:MaxHeapFreeRatio=10 -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90
-            -Xms10m -Xmx1024m
         options:
           containerOptions:
             env:
@@ -192,21 +174,18 @@ pipelineConfig:
             secret:
               secretName: jenkins-release-gpg
         stages:
-        - agent:
+        - name: from-build-pack
+          agent:
             image: maven
-          name: from-build-pack
           steps:
           - command: jx step git credentials
             dir: /workspace/source
-            image: maven
             name: setup-jx-git-credentials
           - command: mvn clean deploy
             dir: /workspace/source
-            image: maven
             name: build-mvn-deploy
           - command: skaffold version
             dir: /workspace/source
-            image: maven
             name: build-skaffold-version
           - command: /kaniko/executor --cache=true --cache-dir=/workspace --context=/workspace/source
               --dockerfile=/workspace/source/Dockerfile --destination=gcr.io/sap-cpe-cloudpot-dev/cloud-s4-sdk-book:${inputs.params.version}
@@ -216,27 +195,21 @@ pipelineConfig:
             name: build-container-build
           - command: jx step post build --image $DOCKER_REGISTRY/$ORG/$APP_NAME:${VERSION}
             dir: /workspace/source
-            image: maven
             name: build-post-build
           - command: echo where-am-i
             dir: /workspace/source
-            image: maven
             name: postbuild-step7
           - command: echo and-what-does-this-do
             dir: /workspace/source
-            image: maven
             name: postbuild-step8
           - command: jx step changelog --version v${VERSION}
             dir: /workspace/source/charts/cloud-s4-sdk-book
-            image: maven
             name: promote-changelog
           - command: jx step helm release
             dir: /workspace/source/charts/cloud-s4-sdk-book
-            image: maven
             name: promote-helm-release
           - command: jx promote -b --all-auto --timeout 1h --version ${VERSION}
             dir: /workspace/source/charts/cloud-s4-sdk-book
-            image: maven
             name: promote-jx-promote
       setVersion:
         steps:
@@ -244,8 +217,8 @@ pipelineConfig:
           steps:
           - comment: so we can retrieve the version in later steps
             name: next-version
-            sh: echo \$(jx-release-version) > VERSION
+            command: echo \$(jx-release-version) > VERSION
           - name: set-version
-            sh: mvn versions:set -DnewVersion=\$(cat VERSION)
+            command: mvn versions:set -DnewVersion=\$(cat VERSION)
           - name: tag-version
-            sh: jx step tag --version \$(cat VERSION)
+            command: jx step tag --version \$(cat VERSION)
