@@ -71,38 +71,40 @@ pipelineConfig:
               secretName: jenkins-docker-cfg
           - name: volume-2
             secret:
-              secretName: jenkins-release-gpg
+              secretName: jenkins-release-gpg  
+        agent:
+          image: maven
         stages:
-        - agent:
-            image: maven
-          name: from-build-pack
+        - name: from-build-pack-build
           steps:
-          - command: mvn versions:set -DnewVersion=$PREVIEW_VERSION
-            dir: /workspace/source
-            name: build-set-version
-          - command: mvn install
-            dir: /workspace/source
-            name: build-mvn-install
-          - command: skaffold version
-            dir: /workspace/source
-            name: build-skaffold-version
-          - command: /kaniko/executor --cache=true --cache-dir=/workspace --context=/workspace/source
-              --dockerfile=/workspace/source/Dockerfile --destination=gcr.io/sap-cpe-cloudpot-dev/cloud-s4-sdk-book:${inputs.params.version}
-              --cache-repo=gcr.io/sap-cpe-cloudpot-dev/cache
-            dir: /workspace/source
-            image: gcr.io/kaniko-project/executor:9912ccbf8d22bbafbf971124600fbb0b13b9cbd6
-            name: build-container-build
+            - command: mvn versions:set -DnewVersion=$PREVIEW_VERSION
+              dir: /workspace/source
+              name: build-set-version
+            - command: mvn install
+              dir: /workspace/source
+              name: build-mvn-install
+            - command: skaffold version
+              dir: /workspace/source
+              name: build-skaffold-version
+            - command: /kaniko/executor --cache=true --cache-dir=/workspace --context=/workspace/source
+                --dockerfile=/workspace/source/Dockerfile --destination=gcr.io/sap-cpe-cloudpot-dev/cloud-s4-sdk-book:${inputs.params.version}
+                --cache-repo=gcr.io/sap-cpe-cloudpot-dev/cache
+              dir: /workspace/source
+              image: gcr.io/kaniko-project/executor:9912ccbf8d22bbafbf971124600fbb0b13b9cbd6
+              name: build-container-build
+        - name: from-build-pack-post-build
           steps:
-          - command: jx step post build --image $DOCKER_REGISTRY/$ORG/$APP_NAME:$PREVIEW_VERSION
-            dir: /workspace/source
-            name: postbuild-post-build
+            - command: jx step post build --image $DOCKER_REGISTRY/$ORG/$APP_NAME:$PREVIEW_VERSION
+              dir: /workspace/source
+              name: postbuild-post-build
+        - name: from-build-pack-build-promote
           steps:
-          - command: make preview
-            dir: /workspace/source/charts/preview
-            name: promote-make-preview
-          - command: jx preview --app $APP_NAME --dir ../..
-            dir: /workspace/source/charts/preview
-            name: promote-jx-preview
+            - command: make preview
+              dir: /workspace/source/charts/preview
+              name: promote-make-preview
+            - command: jx preview --app $APP_NAME --dir ../..
+              dir: /workspace/source/charts/preview
+              name: promote-jx-preview
     release:
       pipeline:
         options:
@@ -165,40 +167,42 @@ pipelineConfig:
           - name: volume-2
             secret:
               secretName: jenkins-release-gpg
+        agent:
+          image: maven
         stages:
-        - name: from-build-pack
-          agent:
-            image: maven
+        - name: from-build-pack-setup
           steps:
-          - command: jx step git credentials
-            dir: /workspace/source
-            name: setup-jx-git-credentials
+            - command: jx step git credentials
+              dir: /workspace/source
+              name: setup-jx-git-credentials
+        - name: from-build-pack-build
           steps:
-          - command: mvn clean deploy
-            dir: /workspace/source
-            name: build-mvn-deploy
-          - command: skaffold version
-            dir: /workspace/source
-            name: build-skaffold-version
-          - command: /kaniko/executor --cache=true --cache-dir=/workspace --context=/workspace/source
-              --dockerfile=/workspace/source/Dockerfile --destination=gcr.io/sap-cpe-cloudpot-dev/cloud-s4-sdk-book:${inputs.params.version}
-              --cache-repo=gcr.io/sap-cpe-cloudpot-dev/cache
-            dir: /workspace/source
-            image: gcr.io/kaniko-project/executor:9912ccbf8d22bbafbf971124600fbb0b13b9cbd6
-            name: build-container-build
-          - command: jx step post build --image $DOCKER_REGISTRY/$ORG/$APP_NAME:${VERSION}
-            dir: /workspace/source
-            name: build-post-build
+            - command: mvn clean deploy
+              dir: /workspace/source
+              name: build-mvn-deploy
+            - command: skaffold version
+              dir: /workspace/source
+              name: build-skaffold-version
+            - command: /kaniko/executor --cache=true --cache-dir=/workspace --context=/workspace/source
+                --dockerfile=/workspace/source/Dockerfile --destination=gcr.io/sap-cpe-cloudpot-dev/cloud-s4-sdk-book:${inputs.params.version}
+                --cache-repo=gcr.io/sap-cpe-cloudpot-dev/cache
+              dir: /workspace/source
+              image: gcr.io/kaniko-project/executor:9912ccbf8d22bbafbf971124600fbb0b13b9cbd6
+              name: build-container-build
+            - command: jx step post build --image $DOCKER_REGISTRY/$ORG/$APP_NAME:${VERSION}
+              dir: /workspace/source
+              name: build-post-build
+        - name: from-build-pack-promote
           steps:
-          - command: jx step changelog --version v${VERSION}
-            dir: /workspace/source/charts/cloud-s4-sdk-book
-            name: promote-changelog
-          - command: jx step helm release
-            dir: /workspace/source/charts/cloud-s4-sdk-book
-            name: promote-helm-release
-          - command: jx promote -b --all-auto --timeout 1h --version ${VERSION}
-            dir: /workspace/source/charts/cloud-s4-sdk-book
-            name: promote-jx-promote
+            - command: jx step changelog --version v${VERSION}
+              dir: /workspace/source/charts/cloud-s4-sdk-book
+              name: promote-changelog
+            - command: jx step helm release
+              dir: /workspace/source/charts/cloud-s4-sdk-book
+              name: promote-helm-release
+            - command: jx promote -b --all-auto --timeout 1h --version ${VERSION}
+              dir: /workspace/source/charts/cloud-s4-sdk-book
+              name: promote-jx-promote
       setVersion:
         steps:
         - image: maven
