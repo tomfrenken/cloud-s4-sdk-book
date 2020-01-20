@@ -92,9 +92,11 @@ pipelineConfig:
             dir: /workspace/source
             image: gcr.io/kaniko-project/executor:9912ccbf8d22bbafbf971124600fbb0b13b9cbd6
             name: build-container-build
+          steps:
           - command: jx step post build --image $DOCKER_REGISTRY/$ORG/$APP_NAME:$PREVIEW_VERSION
             dir: /workspace/source
             name: postbuild-post-build
+          steps:
           - command: make preview
             dir: /workspace/source/charts/preview
             name: promote-make-preview
@@ -171,6 +173,7 @@ pipelineConfig:
           - command: jx step git credentials
             dir: /workspace/source
             name: setup-jx-git-credentials
+          steps:
           - command: mvn clean deploy
             dir: /workspace/source
             name: build-mvn-deploy
@@ -186,6 +189,7 @@ pipelineConfig:
           - command: jx step post build --image $DOCKER_REGISTRY/$ORG/$APP_NAME:${VERSION}
             dir: /workspace/source
             name: build-post-build
+          steps:
           - command: jx step changelog --version v${VERSION}
             dir: /workspace/source/charts/cloud-s4-sdk-book
             name: promote-changelog
