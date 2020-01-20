@@ -175,20 +175,28 @@ pipelineConfig:
             - command: jx step git credentials
               dir: /workspace/source
               name: setup-jx-git-credentials
-        - name: parallel-test
+        - name: parallel-pmd-test
           parallel:
-            - name: mvn-test-1
+            - name: pmd-test-1
               steps:
-                - name: mvn-test
+                - name: pmd-test
+                  image: rawdee/pmd
+                  dir: /workspace/source
+                  command: pmd -language java -dir /workspace/source -rulesets /src/rulesets/java/rulset.xml -f text
+                - name: collect-artifacts
                   image: maven
-                  command: mvn
-                  args: ['test']
-            - name: mvn-test-2
+                  dir: /workspace/source
+                  command: jx step stash -c pmd-artifacts -p "/workspace/source/*.xml" --bucket-url gs://jx-test-artifacts
+            - name: pmd-test-2
               steps:
-                - name: mvn-test
+                - name: pmd-test
+                  image: rawdee/pmd
+                  dir: /workspace/source
+                  command: pmd -language java -dir /workspace/source -rulesets /src/rulesets/java/rulset.xml -f text
+                - name: collect-artifacts
                   image: maven
-                  command: mvn
-                  args: ['test']     
+                  dir: /workspace/source
+                  command: jx step stash -c pmd-artifacts -p "/workspace/source/*.xml" --bucket-url gs://jx-test-artifacts
         - name: from-build-pack-build
           steps:
             - command: mvn clean deploy
