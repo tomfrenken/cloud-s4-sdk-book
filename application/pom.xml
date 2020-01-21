@@ -7,12 +7,12 @@
     <description>address-manager - Application</description>
 
     <artifactId>address-manager-application</artifactId>
-    <version>1.0</version>
+    <version>1.0.26</version>
 
     <parent>
         <groupId>com.sap.cloud.s4hana.examples</groupId>
         <artifactId>address-manager</artifactId>
-        <version>1.0</version>
+        <version>1.0.26</version>
     </parent>
 
     <dependencies>
