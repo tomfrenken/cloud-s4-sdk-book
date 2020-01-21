@@ -186,7 +186,7 @@ pipelineConfig:
                 - name: collect-artifacts
                   image: maven
                   dir: /workspace/source
-                  command: jx step stash -c whatever -p "/workspace/*.html" --bucket-url gs://jx-test-artifacts
+                  command: jx step stash -c pmd-report -p "/workspace/*.html" --bucket-url gs://jx-test-artifacts
             - name: pmd-test-2
               steps:
                 - name: pmd-test
@@ -196,7 +196,7 @@ pipelineConfig:
                 - name: collect-artifacts
                   image: maven
                   dir: /workspace/source
-                  command: jx step stash -c reports -p "/workspace/*.xml"
+                  command: jx step stash -c pmd-report -p "/workspace/*.xml" --bucket-url gs://jx-test-artifacts
         - name: from-build-pack-build
           steps:
             - command: mvn clean deploy
