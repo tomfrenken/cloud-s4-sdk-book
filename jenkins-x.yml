@@ -185,7 +185,7 @@ pipelineConfig:
                   command: pmd -language java -d /workspace/source -f html -R /workspace/source/my-ruleset.xml -r pmd-report_1.html
                 - name: collect-artifacts
                   image: maven
-                  dir: /workspace
+                  dir: /workspace/source
                   command: jx step stash -c reports -p "/workspace/*.html"
             - name: pmd-test-2
               steps:
