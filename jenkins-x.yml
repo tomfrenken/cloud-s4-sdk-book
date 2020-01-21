@@ -181,22 +181,22 @@ pipelineConfig:
               steps:
                 - name: pmd-test
                   image: rawdee/pmd
-                  dir: /workspace
+                  dir: /workspace/source
                   command: pmd -language java -d /workspace/source -f html -R /workspace/source/my-ruleset.xml -r pmd-report.html
                 - name: collect-artifacts
                   image: maven
-                  dir: /workspace
-                  command: jx step stash -c reports -p "/workspace/*.html" --bucket-url gs://jx-eval-01-reports-06bce4e5-816e-44c8-a9f7-488be7579248
+                  dir: /workspace/source
+                  command: jx step stash -c reports -p "/workspace/source/*.html" --bucket-url gs://jx-eval-01-reports-06bce4e5-816e-44c8-a9f7-488be7579248
             - name: pmd-test-2
               steps:
                 - name: pmd-test
                   image: rawdee/pmd
-                  dir: /workspace
+                  dir: /workspace/source
                   command: pmd -language java -d /workspace/source -f html -R /workspace/source/my-ruleset.xml -r pmd-report.html
                 - name: collect-artifacts
                   image: maven
-                  dir: /workspace
-                  command: jx step stash -c reports -p "/workspace/*.html" --bucket-url gs://jx-eval-01-reports-06bce4e5-816e-44c8-a9f7-488be7579248
+                  dir: /workspace/source
+                  command: jx step stash -c reports -p "/workspace/source/*.html" --bucket-url gs://jx-eval-01-reports-06bce4e5-816e-44c8-a9f7-488be7579248
         - name: from-build-pack-build
           steps:
             - command: mvn clean deploy
